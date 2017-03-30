@@ -253,24 +253,25 @@ void exampleClassificationApp::update() {
 				featureVector[1] = col / double(ci::app::getWindowWidth());
 				if (mPipeline.predict(featureVector)) {
 					classLabel = mPipeline.getPredictedClassLabel();
+					std::printf("Class Label: %d\n", classLabel);
 					maximumLikelihood = mPipeline.getMaximumLikelihood();
 					likelihoods = mPipeline.getClassLikelihoods();
 						switch (classLabel) {
-						case 1:
+						case 0:
 							r = 255.0;
 							g = 0;
 							b = 0;
 							a = 255.0;
 							std::printf("Red\n");
 							break;
-						case 2:
+						case 1:
 							r = 0;
 							g = 255.0;
 							b = 0;
 							a = 255.0;
 							std::printf("Green\n");
 							break;
-						case 3:
+						case 2:
 							r = 0;
 							g = 0;
 							b = 255.0;
@@ -285,10 +286,12 @@ void exampleClassificationApp::update() {
 							break;
 					}
 				}
+				std::printf("Pixel color %f %f %f %f\n", r, g, b, a);
 				surfaceIter.r() = r;
 				surfaceIter.g() = g;
 				surfaceIter.b() = b;
 				surfaceIter.a() = a;
+				std::printf("Surface Pixel color %f %f %f %f\n", surfaceIter.r(), surfaceIter.g(), surfaceIter.b(), surfaceIter.a());
 				col++;
 			}
 			row++;

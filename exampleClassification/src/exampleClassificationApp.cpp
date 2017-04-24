@@ -12,7 +12,7 @@ public:
 	enum ClassifierType {
 		ADABOOST = 0,
 		DECISION_TREE,
-		KKN,
+		KNN,
 		GAUSSIAN_MIXTURE_MODEL,
 		NAIVE_BAYES,
 		MINDIST,
@@ -73,7 +73,7 @@ bool exampleClassificationApp::setClassifier(const int type) {
 		dtree.setRemoveFeaturesAtEachSplit(false);
 		mPipeline << dtree;
 		break;
-	case KKN:
+	case KNN:
 		knn.enableNullRejection(enableNullRejection);
 		knn.setNullRejectionCoeff(3);
 		mPipeline << knn;
@@ -154,8 +154,8 @@ std::string exampleClassificationApp::classifierTypeToString(const int type) {
 	case DECISION_TREE:
 		return "DECISION_TREE";
 		break;
-	case KKN:
-		return "KKN";
+	case KNN:
+		return "KNN";
 		break;
 	case GAUSSIAN_MIXTURE_MODEL:
 		return "GMM";
@@ -237,69 +237,57 @@ void exampleClassificationApp::update() {
 	//If the pipeline has been trained, then run the prediction
 	if (mBuildTexture) {
 		std::printf("Building texture...\n");
-		int col = 0;
-		int row = 0;
 		unsigned int classLabel = 0;
 		GRT::VectorFloat featureVector(2);
 		GRT::VectorFloat likelihoods;
 		float r, g, b, a;
 		float maximumLikelihood;
 		const UINT numClasses = mPipeline.getNumClasses();
-		std::printf("Number of classes %d\n", numClasses);
-		Surface::Iter surfaceIter = mClassifyingSurface->getIter();
-		while(surfaceIter.line()) {
-			while(surfaceIter.pixel()) {
-				featureVector[0] = row / double(ci::app::getWindowHeight());
-				featureVector[1] = col / double(ci::app::getWindowWidth());
+		for(int col = 0; col < ci::app::getWindowWidth(); col++) {
+			for (int row = 0; row < ci::app::getWindowHeight(); row++) {
+				featureVector[0] = col / double(ci::app::getWindowWidth());
+				featureVector[1] = row / double(ci::app::getWindowHeight());
 				if (mPipeline.predict(featureVector)) {
 					classLabel = mPipeline.getPredictedClassLabel();
+					std::printf("\nProcessing Pixel (%d, %d)... \n", col, row);
 					std::printf("Class Label: %d\n", classLabel);
 					maximumLikelihood = mPipeline.getMaximumLikelihood();
 					likelihoods = mPipeline.getClassLikelihoods();
-						switch (classLabel) {
-						case 0:
-							r = 255.0;
-							g = 0;
-							b = 0;
-							a = 255.0;
-							std::printf("Red\n");
-							break;
-						case 1:
-							r = 0;
-							g = 255.0;
-							b = 0;
-							a = 255.0;
-							std::printf("Green\n");
-							break;
-						case 2:
-							r = 0;
-							g = 0;
-							b = 255.0;
-							a = 255.0;
-							std::printf("Blue\n");
-							break;
-						default:
-							r = 0;
-							g = 0;
-							b = 0;
-							a = 255.0;
-							break;
+					switch (classLabel) {
+					case 1:
+						r = 64.0;
+						g = 0;
+						b = 0;
+						a = 255.0;
+						std::printf("Pixel is Red\n");
+						mClassifyingSurface->setPixel(ci::ivec2(col, row), ci::ColorA(r, g, b, a));
+						break;
+					case 2:
+						r = 0;
+						g = 64.0;
+						b = 0;
+						a = 255.0;
+						std::printf("Pixel is Green\n");
+						mClassifyingSurface->setPixel(ci::ivec2(col, row), ci::ColorA(r, g, b, a));
+						break;
+					case 3:
+						r = 0;
+						g = 0;
+						b = 64.0;
+						a = 255.0;
+						std::printf("Pixel is Blue\n");
+						mClassifyingSurface->setPixel(ci::ivec2(col, row), ci::ColorA(r, g, b, a));
+						break;
+					default:
+						r = 0;
+						g = 0;
+						b = 0;
+						a = 255.0;
+						mClassifyingSurface->setPixel(ci::ivec2(col, row), ci::ColorA(r, g, b, a));
+						break;
 					}
 				}
-				std::printf("Pixel color %f %f %f %f\n", r, g, b, a);
-				surfaceIter.r() = r;
-				surfaceIter.g() = g;
-				surfaceIter.b() = b;
-				surfaceIter.a() = a;
-				std::printf("Surface Pixel color %f %f %f %f\n", surfaceIter.r(), surfaceIter.g(), surfaceIter.b(), surfaceIter.a());
-				col++;
-			}
-			row++;
-		}
-		Surface::Iter checkIter = mClassifyingSurface->getIter();
-		while (checkIter.line()) {
-			while (checkIter.pixel()) {
-				std::printf("Pixel color %f %f %f\n", checkIter.r(), checkIter.g(), checkIter.b());
+				//std::printf("RGB Set to %f %f %f %f\n", r, g, b, a);
 			}
 		}
 		std::printf("Texture built!\n");
@@ -311,25 +299,22 @@ void exampleClassificationApp::draw() {
 	gl::clear(Color(0, 0, 0));
 
 	if (mPipeline.getTrained()) {
-		std::printf("Drawing texture\n");
-		Surface::Iter surfaceIter = mClassifyingSurface->getIter();
-		while (surfaceIter.line()) {
-			while (surfaceIter.pixel()) {
-				std::printf("Pixel color %f %f %f\n", surfaceIter.r(), surfaceIter.g(), surfaceIter.b());
-			}
-		}
-
+		// draw classification surface
 		gl::Texture2dRef texture = gl::Texture2d::create(*mClassifyingSurface);
 		gl::draw(texture, getWindowBounds());
 	}
 
 	for (unsigned int i = 0; i < mTrainingData.getNumSamples(); i++) {
+		// draw previously recorded samples
 		float x = mTrainingData[i][0] * ci::app::getWindowWidth();
 		float y = mTrainingData[i][1] * ci::app::getWindowHeight();
+
+		gl::color(0,0,0);
+		ci::gl::drawSolidCircle(ci::vec2(x, y), 6);
 
 		gl::color(mClassColors[mTrainingData[i].getClassLabel() - 1 % mClassColors.size()]);
 		ci::gl::drawSolidCircle(ci::vec2(x, y), 5);
 	}
 }
 
-CINDER_APP(exampleClassificationApp, RendererGl, [](App::Settings* settings) { settings->setConsoleWindowEnabled(); })
+CINDER_APP(exampleClassificationApp, RendererGl, [](App::Settings* settings) { settings->setWindowSize(480, 320); settings->setConsoleWindowEnabled(); })

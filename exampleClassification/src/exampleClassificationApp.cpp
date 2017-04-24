@@ -230,6 +230,11 @@ void exampleClassificationApp::keyDown(KeyEvent event) {
 			std::printf("Pipeline could not be trained.\n");
 		}
 	}
+	else if (event.getChar() == 'c') {
+		mTrainingData.clear();
+		mBuildTexture = false;
+		mPipeline.clearModel();
+	}
 }
 
 

@@ -40,6 +40,7 @@ public:
 	UINT mTrainingClassLabel;
 	bool mBuildTexture;
 	ci::SurfaceRef mClassifyingSurface;
+	std::vector<unsigned char> mPixels;
 };
 
 
@@ -200,6 +201,11 @@ void exampleClassificationApp::setup() {
 	mClassColors[0] = ci::Color(255, 0, 0);
 	mClassColors[1] = ci::Color(0, 255, 0);
 	mClassColors[2] = ci::Color(0, 0, 255);
+
+	mPixels.reserve(614400);
+	for (int i = 0; i < 614400; i++) {
+		mPixels.push_back(0);
+	}
 }
 
 void exampleClassificationApp::mouseDown(MouseEvent event) {
@@ -232,8 +238,9 @@ void exampleClassificationApp::keyDown(KeyEvent event) {
 	}
 	else if (event.getChar() == 'c') {
 		mTrainingData.clear();
-		mBuildTexture = false;
 		mPipeline.clearModel();
+		setClassifier(NAIVE_BAYES);
+		mBuildTexture = false;
 	}
 }
 
@@ -241,21 +248,23 @@ void exampleClassificationApp::keyDown(KeyEvent event) {
 void exampleClassificationApp::update() {
 	//If the pipeline has been trained, then run the prediction
 	if (mBuildTexture) {
-		std::printf("Building texture...\n");
+		//std::printf("Building texture...\n");
 		unsigned int classLabel = 0;
 		GRT::VectorFloat featureVector(2);
 		GRT::VectorFloat likelihoods;
+		int pixelNumber;
 		float r, g, b, a;
 		float maximumLikelihood;
 		const UINT numClasses = mPipeline.getNumClasses();
 		for(int col = 0; col < ci::app::getWindowWidth(); col++) {
 			for (int row = 0; row < ci::app::getWindowHeight(); row++) {
+				pixelNumber = col + (row * 480);
 				featureVector[0] = col / double(ci::app::getWindowWidth());
 				featureVector[1] = row / double(ci::app::getWindowHeight());
 				if (mPipeline.predict(featureVector)) {
 					classLabel = mPipeline.getPredictedClassLabel();
-					std::printf("\nProcessing Pixel (%d, %d)... \n", col, row);
-					std::printf("Class Label: %d\n", classLabel);
+					//std::printf("\nProcessing Pixel (%d, %d)... \n", col, row);
+					//std::printf("Class Label: %d\n", classLabel);
 					maximumLikelihood = mPipeline.getMaximumLikelihood();
 					likelihoods = mPipeline.getClassLikelihoods();
 					switch (classLabel) {
@@ -265,6 +274,10 @@ void exampleClassificationApp::update() {
 						b = 0;
 						a = 255.0;
 						std::printf("Pixel is Red\n");
+						mPixels[4 * pixelNumber + 0] = r;
+						mPixels[4 * pixelNumber + 1] = g;
+						mPixels[4 * pixelNumber + 2] = b;
+						mPixels[4 * pixelNumber + 3] = a;
 						mClassifyingSurface->setPixel(ci::ivec2(col, row), ci::ColorA(r, g, b, a));
 						break;
 					case 2:
@@ -273,6 +286,10 @@ void exampleClassificationApp::update() {
 						b = 0;
 						a = 255.0;
 						std::printf("Pixel is Green\n");
+						mPixels[4 * pixelNumber + 0] = r;
+						mPixels[4 * pixelNumber + 1] = g;
+						mPixels[4 * pixelNumber + 2] = b;
+						mPixels[4 * pixelNumber + 3] = a;
 						mClassifyingSurface->setPixel(ci::ivec2(col, row), ci::ColorA(r, g, b, a));
 						break;
 					case 3:
@@ -281,6 +298,10 @@ void exampleClassificationApp::update() {
 						b = 64.0;
 						a = 255.0;
 						std::printf("Pixel is Blue\n");
+						mPixels[4 * pixelNumber + 0] = r;
+						mPixels[4 * pixelNumber + 1] = g;
+						mPixels[4 * pixelNumber + 2] = b;
+						mPixels[4 * pixelNumber + 3] = a;
 						mClassifyingSurface->setPixel(ci::ivec2(col, row), ci::ColorA(r, g, b, a));
 						break;
 					default:
@@ -288,6 +309,11 @@ void exampleClassificationApp::update() {
 						g = 0;
 						b = 0;
 						a = 255.0;
+						std::printf("Pixel is Black\n");
+						mPixels[4 * pixelNumber + 0] = r;
+						mPixels[4 * pixelNumber + 1] = g;
+						mPixels[4 * pixelNumber + 2] = b;
+						mPixels[4 * pixelNumber + 3] = a;
 						mClassifyingSurface->setPixel(ci::ivec2(col, row), ci::ColorA(r, g, b, a));
 						break;
 					}
@@ -301,11 +327,11 @@ void exampleClassificationApp::update() {
 }
 
 void exampleClassificationApp::draw() {
-	gl::clear(Color(0, 0, 0));
+	//gl::clear(Color(0, 0, 0));
 
 	if (mPipeline.getTrained()) {
 		// draw classification surface
-		gl::Texture2dRef texture = gl::Texture2d::create(*mClassifyingSurface);
+		gl::Texture2dRef texture = gl::Texture2d::create(mPixels.data(), GL_RGBA, 480, 320);
 		gl::draw(texture, getWindowBounds());
 	}
 

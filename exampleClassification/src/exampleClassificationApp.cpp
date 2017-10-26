@@ -12,7 +12,7 @@ public:
 	enum ClassifierType {
 		ADABOOST = 0,
 		DECISION_TREE,
-		KKN,
+		KNN,
 		GAUSSIAN_MIXTURE_MODEL,
 		NAIVE_BAYES,
 		MINDIST,
@@ -40,6 +40,7 @@ public:
 	UINT mTrainingClassLabel;
 	bool mBuildTexture;
 	ci::SurfaceRef mClassifyingSurface;
+	std::vector<unsigned char> mPixels;
 };
 
 
@@ -73,7 +74,7 @@ bool exampleClassificationApp::setClassifier(const int type) {
 		dtree.setRemoveFeaturesAtEachSplit(false);
 		mPipeline << dtree;
 		break;
-	case KKN:
+	case KNN:
 		knn.enableNullRejection(enableNullRejection);
 		knn.setNullRejectionCoeff(3);
 		mPipeline << knn;
@@ -154,8 +155,8 @@ std::string exampleClassificationApp::classifierTypeToString(const int type) {
 	case DECISION_TREE:
 		return "DECISION_TREE";
 		break;
-	case KKN:
-		return "KKN";
+	case KNN:
+		return "KNN";
 		break;
 	case GAUSSIAN_MIXTURE_MODEL:
 		return "GMM";
@@ -201,6 +202,11 @@ void exampleClassificationApp::setup() {
 	mClassColors[0] = ci::Color(255, 0, 0);
 	mClassColors[1] = ci::Color(0, 255, 0);
 	mClassColors[2] = ci::Color(0, 0, 255);
+
+	mPixels.reserve(614400);
+	for (int i = 0; i < 614400; i++) {
+		mPixels.push_back(0);
+	}
 }
 
 void exampleClassificationApp::mouseDown(MouseEvent event) {
@@ -231,73 +237,89 @@ void exampleClassificationApp::keyDown(KeyEvent event) {
 			std::printf("Pipeline could not be trained.\n");
 		}
 	}
+	else if (event.getChar() == 'c') {
+		mTrainingData.clear();
+		mPipeline.clearModel();
+		setClassifier(NAIVE_BAYES);
+		mBuildTexture = false;
+	}
 }
 
 
 void exampleClassificationApp::update() {
 	//If the pipeline has been trained, then run the prediction
 	if (mBuildTexture) {
-		std::printf("Building texture...\n");
-		int col = 0;
-		int row = 0;
+		//std::printf("Building texture...\n");
 		unsigned int classLabel = 0;
 		GRT::VectorFloat featureVector(2);
 		GRT::VectorFloat likelihoods;
+		int pixelNumber;
 		float r, g, b, a;
 		float maximumLikelihood;
 		const UINT numClasses = mPipeline.getNumClasses();
-		std::printf("Number of classes %d\n", numClasses);
-		Surface::Iter surfaceIter = mClassifyingSurface->getIter();
-		while(surfaceIter.line()) {
-			while(surfaceIter.pixel()) {
-				featureVector[0] = row / double(ci::app::getWindowHeight());
-				featureVector[1] = col / double(ci::app::getWindowWidth());
+		for(int col = 0; col < ci::app::getWindowWidth(); col++) {
+			for (int row = 0; row < ci::app::getWindowHeight(); row++) {
+				pixelNumber = col + (row * 480);
+				featureVector[0] = col / double(ci::app::getWindowWidth());
+				featureVector[1] = row / double(ci::app::getWindowHeight());
 				if (mPipeline.predict(featureVector)) {
 					classLabel = mPipeline.getPredictedClassLabel();
+					//std::printf("\nProcessing Pixel (%d, %d)... \n", col, row);
+					//std::printf("Class Label: %d\n", classLabel);
 					maximumLikelihood = mPipeline.getMaximumLikelihood();
 					likelihoods = mPipeline.getClassLikelihoods();
-						switch (classLabel) {
-						case 1:
-							r = 255.0;
-							g = 0;
-							b = 0;
-							a = 255.0;
-							std::printf("Red\n");
-							break;
-						case 2:
-							r = 0;
-							g = 255.0;
-							b = 0;
-							a = 255.0;
-							std::printf("Green\n");
-							break;
-						case 3:
-							r = 0;
-							g = 0;
-							b = 255.0;
-							a = 255.0;
-							std::printf("Blue\n");
-							break;
-						default:
-							r = 0;
-							g = 0;
-							b = 0;
-							a = 255.0;
-							break;
+					switch (classLabel) {
+					case 1:
+						r = 64.0;
+						g = 0;
+						b = 0;
+						a = 255.0;
+						std::printf("Pixel is Red\n");
+						mPixels[4 * pixelNumber + 0] = r;
+						mPixels[4 * pixelNumber + 1] = g;
+						mPixels[4 * pixelNumber + 2] = b;
+						mPixels[4 * pixelNumber + 3] = a;
+						mClassifyingSurface->setPixel(ci::ivec2(col, row), ci::ColorA(r, g, b, a));
+						break;
+					case 2:
+						r = 0;
+						g = 64.0;
+						b = 0;
+						a = 255.0;
+						std::printf("Pixel is Green\n");
+						mPixels[4 * pixelNumber + 0] = r;
+						mPixels[4 * pixelNumber + 1] = g;
+						mPixels[4 * pixelNumber + 2] = b;
+						mPixels[4 * pixelNumber + 3] = a;
+						mClassifyingSurface->setPixel(ci::ivec2(col, row), ci::ColorA(r, g, b, a));
+						break;
+					case 3:
+						r = 0;
+						g = 0;
+						b = 64.0;
+						a = 255.0;
+						std::printf("Pixel is Blue\n");
+						mPixels[4 * pixelNumber + 0] = r;
+						mPixels[4 * pixelNumber + 1] = g;
+						mPixels[4 * pixelNumber + 2] = b;
+						mPixels[4 * pixelNumber + 3] = a;
+						mClassifyingSurface->setPixel(ci::ivec2(col, row), ci::ColorA(r, g, b, a));
+						break;
+					default:
+						r = 0;
+						g = 0;
+						b = 0;
+						a = 255.0;
+						std::printf("Pixel is Black\n");
+						mPixels[4 * pixelNumber + 0] = r;
+						mPixels[4 * pixelNumber + 1] = g;
+						mPixels[4 * pixelNumber + 2] = b;
+						mPixels[4 * pixelNumber + 3] = a;
+						mClassifyingSurface->setPixel(ci::ivec2(col, row), ci::ColorA(r, g, b, a));
+						break;
 					}
 				}
-				surfaceIter.r() = r;
-				surfaceIter.g() = g;
-				surfaceIter.b() = b;
-				surfaceIter.a() = a;
-				col++;
-			}
-			row++;
-		}
-		Surface::Iter checkIter = mClassifyingSurface->getIter();
-		while (checkIter.line()) {
-			while (checkIter.pixel()) {
-				std::printf("Pixel color %f %f %f\n", checkIter.r(), checkIter.g(), checkIter.b());
+				//std::printf("RGB Set to %f %f %f %f\n", r, g, b, a);
 			}
 		}
 		std::printf("Texture built!\n");
@@ -306,24 +328,21 @@ void exampleClassificationApp::update() {
 }
 
 void exampleClassificationApp::draw() {
-	gl::clear(Color(0, 0, 0));
+	//gl::clear(Color(0, 0, 0));
 
 	if (mPipeline.getTrained()) {
-		std::printf("Drawing texture\n");
-		Surface::Iter surfaceIter = mClassifyingSurface->getIter();
-		while (surfaceIter.line()) {
-			while (surfaceIter.pixel()) {
-				std::printf("Pixel color %f %f %f\n", surfaceIter.r(), surfaceIter.g(), surfaceIter.b());
-			}
-		}
-
-		gl::Texture2dRef texture = gl::Texture2d::create(*mClassifyingSurface);
+		// draw classification surface
+		gl::Texture2dRef texture = gl::Texture2d::create(mPixels.data(), GL_RGBA, 480, 320);
 		gl::draw(texture, getWindowBounds());
 	}
 
 	for (unsigned int i = 0; i < mTrainingData.getNumSamples(); i++) {
+		// draw previously recorded samples
 		float x = mTrainingData[i][0] * ci::app::getWindowWidth();
 		float y = mTrainingData[i][1] * ci::app::getWindowHeight();
+
+		gl::color(0,0,0);
+		ci::gl::drawSolidCircle(ci::vec2(x, y), 6);
 
 		gl::color(mClassColors[mTrainingData[i].getClassLabel() - 1 % mClassColors.size()]);
 		ci::gl::drawSolidCircle(ci::vec2(x, y), 5);

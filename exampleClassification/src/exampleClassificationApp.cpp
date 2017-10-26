@@ -189,13 +189,14 @@ std::string exampleClassificationApp::classifierTypeToString(const int type) {
 }
 
 void exampleClassificationApp::setup() {
+
 	mTrainingClassLabel = 1;
 	mTrainingData.setNumDimensions(2);
 	setClassifier(NAIVE_BAYES);
 
 	mBuildTexture = false;
 	mClassifyingSurface = ci::Surface::create(ci::app::getWindowWidth(), ci::app::getWindowHeight(), true, ci::SurfaceChannelOrder::RGBA);
-
+	std::printf("Created surface\n");
 	mClassColors.resize(3);
 	mClassColors[0] = ci::Color(255, 0, 0);
 	mClassColors[1] = ci::Color(0, 255, 0);
@@ -329,4 +330,8 @@ void exampleClassificationApp::draw() {
 	}
 }
 
-CINDER_APP(exampleClassificationApp, RendererGl, [](App::Settings* settings) { settings->setConsoleWindowEnabled(); })
+CINDER_APP(exampleClassificationApp, RendererGl, [](App::Settings* settings) {  
+	settings->setWindowSize(800, 600); 
+	settings->setFrameRate(60.0f); 
+	settings->setConsoleWindowEnabled(); 
+})

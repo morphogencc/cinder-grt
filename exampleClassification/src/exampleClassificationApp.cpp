@@ -40,7 +40,6 @@ public:
 	UINT mTrainingClassLabel;
 	bool mBuildTexture;
 	ci::SurfaceRef mClassifyingSurface;
-	std::vector<unsigned char> mPixels;
 };
 
 
@@ -190,23 +189,17 @@ std::string exampleClassificationApp::classifierTypeToString(const int type) {
 }
 
 void exampleClassificationApp::setup() {
-
 	mTrainingClassLabel = 1;
 	mTrainingData.setNumDimensions(2);
-	setClassifier(NAIVE_BAYES);
+	setClassifier(ADABOOST);
 
 	mBuildTexture = false;
 	mClassifyingSurface = ci::Surface::create(ci::app::getWindowWidth(), ci::app::getWindowHeight(), true, ci::SurfaceChannelOrder::RGBA);
-	std::printf("Created surface\n");
-	mClassColors.resize(3);
+	mClassColors.resize(4);
 	mClassColors[0] = ci::Color(255, 0, 0);
 	mClassColors[1] = ci::Color(0, 255, 0);
 	mClassColors[2] = ci::Color(0, 0, 255);
-
-	mPixels.reserve(614400);
-	for (int i = 0; i < 614400; i++) {
-		mPixels.push_back(0);
-	}
+	mClassColors[3] = ci::Color(255, 255, 255);
 }
 
 void exampleClassificationApp::mouseDown(MouseEvent event) {
@@ -253,73 +246,23 @@ void exampleClassificationApp::update() {
 		unsigned int classLabel = 0;
 		GRT::VectorFloat featureVector(2);
 		GRT::VectorFloat likelihoods;
-		int pixelNumber;
-		float r, g, b, a;
 		float maximumLikelihood;
 		const UINT numClasses = mPipeline.getNumClasses();
 		for(int col = 0; col < ci::app::getWindowWidth(); col++) {
 			for (int row = 0; row < ci::app::getWindowHeight(); row++) {
-				pixelNumber = col + (row * 480);
-				featureVector[0] = col / double(ci::app::getWindowWidth());
-				featureVector[1] = row / double(ci::app::getWindowHeight());
+				featureVector[0] = float(col) / double(ci::app::getWindowWidth());
+				featureVector[1] = float(row) / double(ci::app::getWindowHeight());
 				if (mPipeline.predict(featureVector)) {
 					classLabel = mPipeline.getPredictedClassLabel();
 					//std::printf("\nProcessing Pixel (%d, %d)... \n", col, row);
 					//std::printf("Class Label: %d\n", classLabel);
 					maximumLikelihood = mPipeline.getMaximumLikelihood();
 					likelihoods = mPipeline.getClassLikelihoods();
-					switch (classLabel) {
-					case 1:
-						r = 64.0;
-						g = 0;
-						b = 0;
-						a = 255.0;
-						std::printf("Pixel is Red\n");
-						mPixels[4 * pixelNumber + 0] = r;
-						mPixels[4 * pixelNumber + 1] = g;
-						mPixels[4 * pixelNumber + 2] = b;
-						mPixels[4 * pixelNumber + 3] = a;
-						mClassifyingSurface->setPixel(ci::ivec2(col, row), ci::ColorA(r, g, b, a));
-						break;
-					case 2:
-						r = 0;
-						g = 64.0;
-						b = 0;
-						a = 255.0;
-						std::printf("Pixel is Green\n");
-						mPixels[4 * pixelNumber + 0] = r;
-						mPixels[4 * pixelNumber + 1] = g;
-						mPixels[4 * pixelNumber + 2] = b;
-						mPixels[4 * pixelNumber + 3] = a;
-						mClassifyingSurface->setPixel(ci::ivec2(col, row), ci::ColorA(r, g, b, a));
-						break;
-					case 3:
-						r = 0;
-						g = 0;
-						b = 64.0;
-						a = 255.0;
-						std::printf("Pixel is Blue\n");
-						mPixels[4 * pixelNumber + 0] = r;
-						mPixels[4 * pixelNumber + 1] = g;
-						mPixels[4 * pixelNumber + 2] = b;
-						mPixels[4 * pixelNumber + 3] = a;
-						mClassifyingSurface->setPixel(ci::ivec2(col, row), ci::ColorA(r, g, b, a));
-						break;
-					default:
-						r = 0;
-						g = 0;
-						b = 0;
-						a = 255.0;
-						std::printf("Pixel is Black\n");
-						mPixels[4 * pixelNumber + 0] = r;
-						mPixels[4 * pixelNumber + 1] = g;
-						mPixels[4 * pixelNumber + 2] = b;
-						mPixels[4 * pixelNumber + 3] = a;
-						mClassifyingSurface->setPixel(ci::ivec2(col, row), ci::ColorA(r, g, b, a));
-						break;
-					}
+					mClassifyingSurface->setPixel(ci::ivec2(col, row), ci::ColorA(mClassColors[(classLabel - 1) % mClassColors.size()], 1.0));
 				}
-				//std::printf("RGB Set to %f %f %f %f\n", r, g, b, a);
+				else {
+					std::printf("failed to predict.\n");
+				}
 			}
 		}
 		std::printf("Texture built!\n");
@@ -328,11 +271,11 @@ void exampleClassificationApp::update() {
 }
 
 void exampleClassificationApp::draw() {
-	//gl::clear(Color(0, 0, 0));
+	gl::clear(Color(0, 0, 0));
 
 	if (mPipeline.getTrained()) {
 		// draw classification surface
-		gl::Texture2dRef texture = gl::Texture2d::create(mPixels.data(), GL_RGBA, 480, 320);
+		gl::Texture2dRef texture = gl::Texture2d::create(*mClassifyingSurface);
 		gl::draw(texture, getWindowBounds());
 	}
 
@@ -350,7 +293,5 @@ void exampleClassificationApp::draw() {
 }
 
 CINDER_APP(exampleClassificationApp, RendererGl, [](App::Settings* settings) {  
-	settings->setWindowSize(800, 600); 
-	settings->setFrameRate(60.0f); 
 	settings->setConsoleWindowEnabled(); 
 })

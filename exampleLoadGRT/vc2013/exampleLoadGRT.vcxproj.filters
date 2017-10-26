@@ -14,17 +14,17 @@
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
     </Filter>
     <Filter Include="blocks">
-      <UniqueIdentifier>{0e87ba03-c7da-446b-9d8d-2c6269ab6684}</UniqueIdentifier>
+      <UniqueIdentifier>{cb817b8a-a358-4198-8f59-a26f7ad9db68}</UniqueIdentifier>
     </Filter>
     <Filter Include="blocks\midnight-grt">
-      <UniqueIdentifier>{1a6f7c11-bc74-4378-8d81-6b0cdd1d59ae}</UniqueIdentifier>
+      <UniqueIdentifier>{05463221-a0fc-40ee-98d0-40172720cafe}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\exampleClassificationApp.cpp">
+    <ClCompile Include="..\src\exampleLoadGRTApp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\exampleClassificationApp.cpp">
+    <ClCompile Include="..\src\exampleLoadGRTApp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClInclude Include="..\include\Resources.h">

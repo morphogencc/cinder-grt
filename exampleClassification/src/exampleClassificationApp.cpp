@@ -36,7 +36,7 @@ public:
 	int mClassifierType;
 	GRT::ClassificationData mTrainingData;
 	GRT::GestureRecognitionPipeline mPipeline;
-	GRT::Vector<ci::Color> mClassColors;
+	std::vector<ci::Color> mClassColors;
 	UINT mTrainingClassLabel;
 	bool mBuildTexture;
 	ci::SurfaceRef mClassifyingSurface;
@@ -85,7 +85,9 @@ bool exampleClassificationApp::setClassifier(const int type) {
 		break;
 	case NAIVE_BAYES:
 		naiveBayes.enableNullRejection(enableNullRejection);
-		naiveBayes.setNullRejectionCoeff(3);
+		naiveBayes.setNullRejectionCoeff(10);
+		naiveBayes.enableScaling(true);
+		naiveBayes.enableNullRejection(true);
 		mPipeline << naiveBayes;
 		break;
 	case MINDIST:
@@ -191,7 +193,7 @@ std::string exampleClassificationApp::classifierTypeToString(const int type) {
 void exampleClassificationApp::setup() {
 	mTrainingClassLabel = 1;
 	mTrainingData.setNumDimensions(2);
-	setClassifier(ADABOOST);
+	setClassifier(NAIVE_BAYES);
 
 	mBuildTexture = false;
 	mClassifyingSurface = ci::Surface::create(ci::app::getWindowWidth(), ci::app::getWindowHeight(), true, ci::SurfaceChannelOrder::RGBA);
@@ -254,8 +256,10 @@ void exampleClassificationApp::update() {
 				featureVector[1] = float(row) / double(ci::app::getWindowHeight());
 				if (mPipeline.predict(featureVector)) {
 					classLabel = mPipeline.getPredictedClassLabel();
-					//std::printf("\nProcessing Pixel (%d, %d)... \n", col, row);
-					//std::printf("Class Label: %d\n", classLabel);
+					if ((row % 50 == 0) && (col % 50 == 0)) {
+						std::printf("\nProcessing Pixel (%d, %d)... \n", col, row);
+						std::printf("Class Label: %d\n", classLabel);
+					}
 					maximumLikelihood = mPipeline.getMaximumLikelihood();
 					likelihoods = mPipeline.getClassLikelihoods();
 					mClassifyingSurface->setPixel(ci::ivec2(col, row), ci::ColorA(mClassColors[(classLabel - 1) % mClassColors.size()], 1.0));
@@ -292,6 +296,7 @@ void exampleClassificationApp::draw() {
 	}
 }
 
-CINDER_APP(exampleClassificationApp, RendererGl, [](App::Settings* settings) {  
+CINDER_APP(exampleClassificationApp, RendererGl, [](App::Settings* settings) {
+	settings->setWindowSize(480,320);
 	settings->setConsoleWindowEnabled(); 
 })

@@ -19,13 +19,13 @@ class exampleLoadGRTApp : public App {
 void exampleLoadGRTApp::setup() {
 	//Generate a basic dummy dataset with 1000 samples, 5 classes, and 3 dimensions
 	cout << "Generating dataset..." << endl;
-	ClassificationData::generateGaussDataset("data.csv", 1000, 5, 3);
+	ClassificationData::generateGaussDataset("C:/MidnightCommercial/data.csv", 1000, 5, 3);
 
 	//Load some training data from a file
 	ClassificationData trainingData;
 
 	cout << "Loading dataset..." << endl;
-	if (!trainingData.load("data.csv")) {
+	if (!trainingData.load("C:/MidnightCommercial/data.csv")) {
 		cout << "ERROR: Failed to load training data from file\n";
 		return;
 	}

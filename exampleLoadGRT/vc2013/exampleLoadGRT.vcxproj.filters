@@ -16,7 +16,7 @@
     <Filter Include="blocks">
       <UniqueIdentifier>{cb817b8a-a358-4198-8f59-a26f7ad9db68}</UniqueIdentifier>
     </Filter>
-    <Filter Include="blocks\midnight-grt">
+    <Filter Include="blocks\cinder-grt">
       <UniqueIdentifier>{05463221-a0fc-40ee-98d0-40172720cafe}</UniqueIdentifier>
     </Filter>
   </ItemGroup>

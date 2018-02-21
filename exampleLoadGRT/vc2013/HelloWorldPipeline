@@ -32,54 +32,54 @@ ClassLabels:  1 2 3 4 5
 Model_ID: 1
 N: 3
 ClassLabel: 1
-Threshold: -17.5175
+Threshold: -14.5381
 Gamma: 10
-TrainingMu: -4.1612
-TrainingSigma: 1.33563
-Mu:	-2.36094	-5.85138	5.76197
-Sigma:	1.03696	0.921722	0.960342
+TrainingMu: -4.09904
+TrainingSigma: 1.0439
+Mu:	-9.75538	-9.30923	-5.35282
+Sigma:	1.05222	1.01701	0.80655
 Weights:	1	1	1
 *************_MODEL_*************
 Model_ID: 2
 N: 3
 ClassLabel: 2
-Threshold: -16.0516
+Threshold: -17.8613
 Gamma: 10
-TrainingMu: -4.19975
-TrainingSigma: 1.18519
-Mu:	-5.21172	9.44081	-5.90701
-Sigma:	0.870833	1.09423	1.00057
+TrainingMu: -4.24409
+TrainingSigma: 1.36172
+Mu:	-1.3878	-5.39785	-4.27213
+Sigma:	1.01327	1.02449	0.960748
 Weights:	1	1	1
 *************_MODEL_*************
 Model_ID: 3
 N: 3
 ClassLabel: 3
-Threshold: -15.5463
+Threshold: -15.0932
 Gamma: 10
-TrainingMu: -4.13064
-TrainingSigma: 1.14156
-Mu:	-1.47353	-6.78109	-9.10107
-Sigma:	0.934327	1.04923	0.907308
+TrainingMu: -4.44993
+TrainingSigma: 1.06433
+Mu:	8.27882	8.60936	8.22884
+Sigma:	1.15151	1.12127	0.947812
 Weights:	1	1	1
 *************_MODEL_*************
 Model_ID: 4
 N: 3
 ClassLabel: 4
-Threshold: -16.614
+Threshold: -15.6483
 Gamma: 10
-TrainingMu: -4.13905
-TrainingSigma: 1.2475
-Mu:	0.673888	-1.51656	7.59857
-Sigma:	0.915274	1.01421	0.965339
+TrainingMu: -4.19143
+TrainingSigma: 1.14569
+Mu:	-4.31415	-4.02443	8.92219
+Sigma:	0.985018	1.02781	0.933225
 Weights:	1	1	1
 *************_MODEL_*************
 Model_ID: 5
 N: 3
 ClassLabel: 5
-Threshold: -16.982
+Threshold: -16.1454
 Gamma: 10
-TrainingMu: -4.10726
-TrainingSigma: 1.28747
-Mu:	-8.30438	8.06334	-2.98587
-Sigma:	0.893476	1.03606	0.940449
+TrainingMu: -4.33347
+TrainingSigma: 1.18119
+Mu:	-8.276	3.93467	1.90569
+Sigma:	1.09515	0.979783	1.0154
 Weights:	1	1	1
